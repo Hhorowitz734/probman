@@ -1,8 +1,7 @@
 src/problems/ProblemManager
 src/problems/quickbuild.sh
-src/problems/Solution.cpp
-src/problems/Solution.h
-
+src/problems/Solution.*
+src/cli/Solution.*
 
 
 

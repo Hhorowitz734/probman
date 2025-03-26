@@ -15,8 +15,9 @@ void ProblemManager::handleGet() {
 	using json = nlohmann::json;
 	
 	/* STEP 1 -> Get Problem Params*/
-	ifstream file("problems.json");
+	std::ifstream file(problemDirPath + "/problems.json");
 	if (!file) {
+		cout << problemDirPath << std::endl;
 		cerr << "Could not open problems.json. There is a configuration error." << std::endl;
 		return;
 	}
