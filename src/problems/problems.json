@@ -1,0 +1,11 @@
+{
+	"problems": [
+		{
+			"id": "00000001",
+			"title": "Mountain Climber",
+			"statement" : "This is a test",
+			"inputParams": ["int a"],
+			"outputType": "int"
+		}
+	]
+}
