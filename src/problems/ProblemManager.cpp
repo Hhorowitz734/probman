@@ -1,11 +1,31 @@
 #include "ProblemManager.h"
+#include "json.hpp"
+#include <fstream>
 
-ProblemManager::ProblemManager(ProblemAction action, const std::string& problemId) :
-	action(action), problemId(problemId) {
+ProblemManager::ProblemManager(ProblemAction action, const std::string& problemId, const std::string& problemDirPath) :
+	action(action), problemId(problemId) , problemDirPath(problemDirPath) {
 }
 
 void ProblemManager::handleGet() {
-	std::cout << "Getting" << std::endl;
+	
+	using json = nlohmann::json;
+	
+	/* STEP 1 -> Get Problem Params*/
+	std::ifstream file("problems.json");
+	if (!file) {
+		std::cerr << "Could not open problems.json. There is a configuration error." << std::endl;
+		return;
+	}
+	
+	// Parse json
+	json prob;
+	file >> prob;
+	//std::string title = prob["title"];
+
+	// Print values to test
+	int idx = std::stoi(problemId);
+	std::cout << prob["problems"][idx - 1]["title"] << std::endl;
+
 }
 
 void ProblemManager::handleTest() {
@@ -33,13 +53,14 @@ void ProblemManager::run() {
 
 
 int main(int argc, char** argv) {
-	if (argc < 3) {
-		std::cerr << "Usage: ./manager <get|test> <problem_id>" << std::endl;
+	if (argc < 4) {
+		std::cerr << "Usage: ./manager <get|test> <problem_id> <path_to_problem_folder>" << std::endl;
 		return 1;
 	}
 
 	std::string command = argv[1];
 	std::string problemId = argv[2];
+	std::string problemDirPath = argv[3];
 	ProblemAction action;	
 
 
@@ -47,7 +68,7 @@ int main(int argc, char** argv) {
 	else if (command == "test") action = ProblemAction::TEST;
 	else action = ProblemAction::ERR;
 
-	ProblemManager manager(action, problemId);
+	ProblemManager manager(action, problemId, problemDirPath);
 	manager.run();
 
 
