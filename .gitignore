@@ -1,1 +1,8 @@
-src/problems/problemManager
+src/problems/ProblemManager
+src/problems/quickbuild.sh
+src/problems/Solution.cpp
+src/problems/Solution.h
+
+
+
+
