@@ -19,14 +19,12 @@ struct TestSuite {
 template <typename T>
 class Problem {
 public:
-	Problem(const std::string& statement) : problemStatement(statement) {};
+	Problem(const std::string& statement) : problemStatement(statement);
 	
-	int runTests(const std::string& executablePath) {
-		return -1; //placeholder
-	}
-		/*
-		Returns the index of the test that failed; otherwise returns -1
-		*/
+	int runTests(const std::string& executablePath);
+	/*
+	 * Returns the index of the test that failed; otherwise returns -1
+	*/
 
 
 

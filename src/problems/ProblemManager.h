@@ -15,12 +15,13 @@ class ProblemManager{
 private:
 	ProblemAction action;
 	std::string problemId;
+	std::string problemDirPath;
 
 	void handleGet();
 	void handleTest();
 
 public:
-	ProblemManager(ProblemAction action, const std::string& problemId);
+	ProblemManager(ProblemAction action, const std::string& problemId, const std::string& problemDirPath);
 
 	void run();
 

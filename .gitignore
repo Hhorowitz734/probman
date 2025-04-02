@@ -1,1 +1,8 @@
-src/problems/problemManager
+src/problems/ProblemManager
+src/problems/quickbuild.sh
+src/problems/Solution.*
+src/cli/Solution.*
+
+src/judge/target
+**/.env
+.DS_Store
