@@ -4,10 +4,10 @@ name: CI
 on:
   push:
     branches:
-      - main
+      - judge
   pull_request:
     branches:
-      - main
+      - judge
 
 jobs:
   judge-backend:
