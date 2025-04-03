@@ -2,6 +2,7 @@
 
 use actix_web::{get, post, web, HttpResponse, Responder};
 use sqlx::PgPool;
+use uuid::Uuid;
 
 use crate::models::problem::{Problem, NewProblem};
 
@@ -26,7 +27,7 @@ pub async fn get_all_problems(pool: web::Data<PgPool>) -> impl Responder {
 #[get("/problem/{id}")]
 pub async fn get_problem_by_id(
     pool: web::Data<PgPool>,
-    id: web::Path<i32>,
+    id: web::Path<Uuid>,
 ) -> impl Responder {
     
     let result = sqlx::query_as::<_, Problem>("SELECT * FROM problems WHERE id = $1")
