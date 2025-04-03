@@ -12,23 +12,41 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout repo (optional, helpful for debugging)
+        uses: actions/checkout@v4
+
       - name: Set up SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" | base64 -d > ~/.ssh/id_rsa
+
+          # Write SSH private key securely (no base64 decoding needed)
+          cat << 'EOF' > ~/.ssh/id_rsa
+${{ secrets.EC2_SSH_KEY }}
+EOF
+
           chmod 600 ~/.ssh/id_rsa
+
+          # Add EC2 host to known_hosts to avoid prompt
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
       - name: Deploy and restart judge
         run: |
-          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << EOF
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << EOF
             set -e
+
+            # Stop the judge service if it's running
             sudo systemctl stop judge || true
+
+            # Remove existing codebase and pull fresh
             rm -rf ~/probman
             git clone https://github.com/${{ secrets.REPO_NAME }} ~/probman
+
+            # Build the backend
             cd ~/probman/src/judge
-            source \$HOME/.cargo/env || echo "cargo already in PATH"
+            source \$HOME/.cargo/env || true
             cargo build --release
+
+            # Restart the judge service
             sudo systemctl restart judge
           EOF
 
