@@ -17,7 +17,7 @@ async fn test_create_test_case() {
         .await
         .expect("db connection failed");
 
-    let valid_problem_id = Uuid::parse_str("3c2afa0e-1030-40a3-b2f3-6c6c0f0646d0").unwrap();
+    let valid_problem_id = Uuid::parse_str("a2ce5f3a-e00a-41fb-b00b-323e44910e33").unwrap();
 
     let app = test::init_service(
         App::new()
@@ -54,7 +54,8 @@ async fn test_get_test_cases_for_problem() {
         .await
         .expect("db connection failed");
 
-    let valid_problem_id = "3c2afa0e-1030-40a3-b2f3-6c6c0f0646d0";
+    let valid_problem_id = "a2ce5f3a-e00a-41fb-b00b-323e44910e33";
+
 
     let app = test::init_service(
         App::new()

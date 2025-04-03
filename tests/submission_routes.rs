@@ -28,7 +28,7 @@ async fn test_create_submission() {
     ).await;
 
     // Use the valid problem ID provided
-    let problem_id = "3c2afa0e-1030-40a3-b2f3-6c6c0f0646d0".to_string();  // Correct problem ID
+    let problem_id = "a2ce5f3a-e00a-41fb-b00b-323e44910e33".to_string();  // Correct problem ID
 
     // Create a new submission payload
     let submission_payload = json!({
