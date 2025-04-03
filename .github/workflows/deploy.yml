@@ -1,4 +1,3 @@
-
 name: Deploy Judge Backend to EC2
 
 on:
@@ -14,12 +13,12 @@ jobs:
     steps:
       - name: Set up SSH
         env:
-          SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+          SSH_KEY_BASE64: ${{ secrets.EC2_SSH_KEY }}
         run: |
           mkdir -p ~/.ssh
-          
-          # Write the raw SSH key (with proper formatting)
-          printf "%s\n" "$SSH_KEY" > ~/.ssh/id_rsa
+
+          # Decode the base64 private key and write it to id_rsa
+          echo "$SSH_KEY_BASE64" | base64 --decode > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
           # Add EC2 host to known_hosts
@@ -30,13 +29,18 @@ jobs:
           ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
             set -e
 
+            # Stop the judge service (if running) without causing errors
             sudo systemctl stop judge || true
+
+            # Remove the previous probman directory and clone the latest code
             rm -rf ~/probman
             git clone https://github.com/${{ secrets.REPO_NAME }} ~/probman
 
+            # Build the Rust project using cargo
             cd ~/probman/src/judge
             source $HOME/.cargo/env || echo "cargo already in PATH"
             cargo build --release
+
+            # Restart the judge service
             sudo systemctl restart judge
           EOF
-
