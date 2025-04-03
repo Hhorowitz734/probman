@@ -14,18 +14,19 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Set up SSH
-        shell: bash
-        run: |
-          mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
 
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+  - name: Set up SSH
+      shell: bash
+      run: |
+        mkdir -p ~/.ssh
+        chmod 700 ~/.ssh
 
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+        printf '%s\n' "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
 
-      - name: Deploy and restart service
+        ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+  - name: Deploy and restart service
         shell: bash
         run: |
           ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'ENDSSH'
