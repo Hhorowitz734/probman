@@ -12,38 +12,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-
-      - name: Set up SSH access
+      - name: Set up SSH
         run: |
           mkdir -p ~/.ssh
 
-          # Add private key securely using heredoc
-          cat <<EOF > ~/.ssh/id_rsa
-${{ secrets.EC2_SSH_KEY }}
-EOF
+          # Safely write the private key to file using printf (avoids heredoc issues)
+          printf "%s\n" "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
-          # Preload known hosts to avoid prompt
+          # Add EC2 host to known_hosts
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Deploy and restart judge
+      - name: Connect to EC2 and deploy
         run: |
           ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
             set -e
-
-            # Navigate into repo and pull latest changes
-            cd ~/probman
-            git reset --hard
-            git pull origin main
-
-            # Rebuild the backend
-            cd src/judge
-            source $HOME/.cargo/env
+            sudo systemctl stop judge || true
+            rm -rf ~/probman
+            git clone https://github.com/${{ secrets.REPO_NAME }} ~/probman
+            cd ~/probman/src/judge
+            source \$HOME/.cargo/env
             cargo build --release
-
-            # Restart the systemd service
             sudo systemctl restart judge
           EOF
 
