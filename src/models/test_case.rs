@@ -1,8 +1,17 @@
 // src/models/test_case.rs
 
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use sqlx::FromRow;
 use uuid::Uuid;
+
+#[derive(Debug, Deserialize)]
+pub struct NewTestCase {
+    pub problem_id: Uuid,
+    pub input: String,
+    pub expected_output: String,
+    pub visibility: Option<String>,
+}
+
 
 
 #[derive(Debug, FromRow, Serialize)]
