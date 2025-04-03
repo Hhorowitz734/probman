@@ -1,3 +1,4 @@
+
 name: Deploy Judge Backend to EC2
 
 on:
@@ -11,25 +12,45 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout repo
         uses: actions/checkout@v3
 
       - name: Set up SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 700 ~/.ssh
+
+          # Write the SSH private key from GitHub Secrets
+          cat << 'EOF' > ~/.ssh/id_rsa
+${{ secrets.EC2_SSH_KEY }}
+EOF
+
           chmod 600 ~/.ssh/id_rsa
+
+          # Trust EC2 host key
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Pull latest code and restart judge
+      - name: Deploy and restart service
         run: |
           ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
             set -e
+
+            # Stop the backend service if it's running
+            sudo systemctl stop judge || true
+
+            # Optional: delete the repo completely
+            # rm -rf ~/probman
+
+            # Pull latest changes
             cd ~/probman
             git pull origin main
+
+            # Build the backend
             cd src/judge
-            source \$HOME/.cargo/env
+            source $HOME/.cargo/env
             cargo build --release
+
+            # Restart the backend service
             sudo systemctl restart judge
           EOF
 
