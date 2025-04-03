@@ -1,4 +1,5 @@
 
+
 name: Deploy Judge Backend to EC2
 
 on:
@@ -12,6 +13,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Check the length of the base64 secret
+        run: |
+          echo "Length of base64 SSH Key: ${#SSH_KEY_BASE64}"
+        env:
+          SSH_KEY_BASE64: ${{ secrets.EC2_SSH_KEY }}
+
       - name: Set up SSH
         env:
           SSH_KEY_BASE64: ${{ secrets.EC2_SSH_KEY }}
