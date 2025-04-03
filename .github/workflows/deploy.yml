@@ -1,3 +1,4 @@
+
 name: Deploy Judge Backend to EC2
 
 on:
@@ -14,37 +15,35 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-
-  - name: Set up SSH
-      shell: bash
-      run: |
-        mkdir -p ~/.ssh
-        chmod 700 ~/.ssh
-
-        printf '%s\n' "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-
-        ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
-
-  - name: Deploy and restart service
-        shell: bash
+      - name: Set up SSH access
         run: |
-          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'ENDSSH'
+          mkdir -p ~/.ssh
+
+          # Add private key securely using heredoc
+          cat <<EOF > ~/.ssh/id_rsa
+${{ secrets.EC2_SSH_KEY }}
+EOF
+          chmod 600 ~/.ssh/id_rsa
+
+          # Preload known hosts to avoid prompt
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy and restart judge
+        run: |
+          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
             set -e
 
-            # Stop the judge service if running
-            sudo systemctl stop judge || true
-
-            # Navigate to the repo and pull latest
+            # Navigate into repo and pull latest changes
             cd ~/probman
+            git reset --hard
             git pull origin main
 
-            # Rebuild
+            # Rebuild the backend
             cd src/judge
             source $HOME/.cargo/env
             cargo build --release
 
-            # Restart service
+            # Restart the systemd service
             sudo systemctl restart judge
-          ENDSSH
+          EOF
 
