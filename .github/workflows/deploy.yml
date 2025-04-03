@@ -14,12 +14,12 @@ jobs:
     steps:
       - name: Set up SSH
         env:
-          SSH_KEY_BASE64: ${{ secrets.EC2_SSH_KEY }}
+          SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
         run: |
           mkdir -p ~/.ssh
 
-          # Decode the base64 private key and write it to id_rsa
-          echo "$SSH_KEY_BASE64" | base64 --decode > ~/.ssh/id_rsa
+          # Write the SSH key directly to id_rsa
+          echo "$SSH_KEY" > ~/.ssh/id_rsa
           
           # Set correct permissions for the private key file
           chmod 600 ~/.ssh/id_rsa
