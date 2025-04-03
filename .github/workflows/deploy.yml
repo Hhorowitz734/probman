@@ -1,3 +1,4 @@
+
 name: Deploy Judge Backend to EC2
 
 on:
@@ -21,26 +22,18 @@ jobs:
           echo "$SSH_KEY_BASE64" | base64 --decode > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
+          # Check if the private key was written correctly
+          echo "Private Key Length: $(wc -l < ~/.ssh/id_rsa)"
+          
           # Add EC2 host to known_hosts
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Deploy and restart judge
+          # Verify if the host is added to known_hosts
+          echo "Known Hosts:"
+          cat ~/.ssh/known_hosts
+
+      - name: Debug SSH connectivity
         run: |
-          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-            set -e
-
-            # Stop the judge service (if running) without causing errors
-            sudo systemctl stop judge || true
-
-            # Remove the previous probman directory and clone the latest code
-            rm -rf ~/probman
-            git clone https://github.com/${{ secrets.REPO_NAME }} ~/probman
-
-            # Build the Rust project using cargo
-            cd ~/probman/src/judge
-            source $HOME/.cargo/env || echo "cargo already in PATH"
-            cargo build --release
-
-            # Restart the judge service
-            sudo systemctl restart judge
-          EOF
+          echo "Attempting SSH connection..."
+          ssh -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} echo "SSH connection successful!"
+         EOF
