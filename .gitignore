@@ -6,3 +6,8 @@ src/cli/Solution.*
 src/judge/target
 **/.env
 .DS_Store
+
+#couldnt get this to work
+#removing for now
+#its supposed to autopush to EC2
+.github/workflows/deploy.yml
