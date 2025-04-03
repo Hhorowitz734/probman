@@ -13,15 +13,16 @@ jobs:
 
     steps:
       - name: Set up SSH
+        env:
+          SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
         run: |
           mkdir -p ~/.ssh
 
-          # Securely write SSH private key without base64
-          cat << 'EOF' > ~/.ssh/id_rsa
-${{ secrets.EC2_SSH_KEY }}
-EOF
-
+          # Safely write private key using printf
+          printf "%s\n" "$SSH_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
+
+          # Add EC2 host to known_hosts
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
       - name: Deploy and restart judge
@@ -29,19 +30,13 @@ EOF
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << EOF
             set -e
 
-            # Stop the judge service if it's running
             sudo systemctl stop judge || true
-
-            # Clean up and clone the latest code
             rm -rf ~/probman
             git clone https://github.com/${{ secrets.REPO_NAME }} ~/probman
 
-            # Build the judge backend
             cd ~/probman/src/judge
             source \$HOME/.cargo/env || echo "cargo already in PATH"
             cargo build --release
-
-            # Restart the service
             sudo systemctl restart judge
           EOF
 
