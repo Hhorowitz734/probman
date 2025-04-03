@@ -22,7 +22,7 @@ async fn test_get_problem_by_id() {
     ).await;
 
     let req = test::TestRequest::get()
-        .uri("/problem/3c2afa0e-1030-40a3-b2f3-6c6c0f0646d0")  
+        .uri("/problem/a2ce5f3a-e00a-41fb-b00b-323e44910e33")  
         .to_request();
 
     let resp = test::call_service(&app, req).await;
