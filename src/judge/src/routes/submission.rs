@@ -1,9 +1,8 @@
 // src/routes/submission.rs
 
-use actix_web::{post, get, web, HttpResponse, Responder};
+use actix_web::{post, web, HttpResponse, Responder};
 use uuid::Uuid;
-use crate::models::submission::{NewSubmissionRequest, Submission};
-use crate::models::problem::Problem;
+use crate::models::submission::NewSubmissionRequest;
 use sqlx::PgPool;
 use serde_json::json;
 
