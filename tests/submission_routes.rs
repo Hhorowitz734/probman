@@ -1,12 +1,9 @@
 // tests/submission_routes.rs
 
-use actix_web::{test, web, App, HttpResponse};
+use actix_web::{test, App};
 use serde_json::json;
 use uuid::Uuid;
-use judge::models::submission::{NewSubmissionRequest, Submission};
-use judge::models::problem::Problem;
 use judge::routes::submission::create_submission;
-use dotenvy::dotenv;
 use sqlx::PgPool;
 
 
