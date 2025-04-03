@@ -15,34 +15,20 @@ jobs:
       - name: Set up SSH
         run: |
           mkdir -p ~/.ssh
-
-          # Write private key securely with heredoc (multi-line safe)
-          cat <<EOF > ~/.ssh/id_rsa
-${{ secrets.EC2_SSH_KEY }}
-EOF
+          echo "${{ secrets.EC2_SSH_KEY }}" | base64 -d > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-
-          # Add EC2 host to known_hosts to prevent SSH prompt
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
       - name: Deploy and restart judge
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << EOF
             set -e
-
-            # Stop judge service if running
             sudo systemctl stop judge || true
-
-            # Delete and re-clone repo
             rm -rf ~/probman
             git clone https://github.com/${{ secrets.REPO_NAME }} ~/probman
-
-            # Build the backend
             cd ~/probman/src/judge
-            source \$HOME/.cargo/env
+            source \$HOME/.cargo/env || echo "cargo already in PATH"
             cargo build --release
-
-            # Restart judge backend
             sudo systemctl restart judge
           EOF
 
