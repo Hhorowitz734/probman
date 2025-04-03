@@ -17,18 +17,17 @@ jobs:
           SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
         run: |
           mkdir -p ~/.ssh
-
-          # Safely write private key using printf
+          
+          # Write the raw SSH key (with proper formatting)
           printf "%s\n" "$SSH_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
           # Add EC2 host to known_hosts
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-
       - name: Deploy and restart judge
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << EOF
+          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
             set -e
 
             sudo systemctl stop judge || true
@@ -36,7 +35,7 @@ jobs:
             git clone https://github.com/${{ secrets.REPO_NAME }} ~/probman
 
             cd ~/probman/src/judge
-            source \$HOME/.cargo/env || echo "cargo already in PATH"
+            source $HOME/.cargo/env || echo "cargo already in PATH"
             cargo build --release
             sudo systemctl restart judge
           EOF
