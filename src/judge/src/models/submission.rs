@@ -8,7 +8,7 @@ use uuid::Uuid;
 #[derive(Debug, FromRow, Serialize)]
 pub struct Submission {
     pub id: Uuid,
-    pub problem_id: String,
+    pub problem_id: Uuid,
     pub code: String,
     pub verdict: Option<String>,
     pub output: Option<String>,
@@ -18,6 +18,6 @@ pub struct Submission {
 
 #[derive(Debug, Deserialize)]
 pub struct NewSubmissionRequest {
-    pub problem_id: String,
+    pub problem_id: Uuid,
     pub code: String,
 }
