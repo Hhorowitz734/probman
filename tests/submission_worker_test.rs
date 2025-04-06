@@ -2,7 +2,7 @@
 
 
 use std::env;
-use sqlx::{PgPool, postgres::PgPoolOptions};
+use sqlx::postgres::PgPoolOptions;
 use redis::AsyncCommands;
 use uuid::Uuid;
 use serde_json::json;
@@ -41,7 +41,7 @@ async fn test_submission_worker_processes_queue() {
 
     // Connect to Redis
     let redis_client = redis::Client::open(redis_url).unwrap();
-    let mut redis_con = redis_client.get_async_connection().await.unwrap();
+    let mut redis_con = redis_client.get_multiplexed_async_connection().await.unwrap();
 
     // Push a task to Redis
     let task = json!({
@@ -56,7 +56,7 @@ async fn test_submission_worker_processes_queue() {
 
     // Run the worker for a short while
     let worker_pool = pool.clone();
-    let worker_redis = redis_client.get_async_connection().await.unwrap();
+    let worker_redis = redis_client.get_multiplexed_async_connection().await.unwrap();
 
     tokio::spawn(async move {
         start_redis_worker(worker_redis, worker_pool).await;

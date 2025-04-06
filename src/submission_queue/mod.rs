@@ -1,6 +1,6 @@
 // src/submission_queue/mod.rs
 
-use redis::aio::Connection;
+use redis::aio::MultiplexedConnection;
 use redis::AsyncCommands;
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -8,7 +8,7 @@ use serde_json::Value;
 use tokio::time::{sleep, Duration};
 
 pub async fn start_redis_worker(
-    mut con: Connection,
+    mut con: MultiplexedConnection,
     pool: PgPool
 ) {
     loop {

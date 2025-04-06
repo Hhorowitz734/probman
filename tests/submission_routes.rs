@@ -2,7 +2,6 @@
 
 use actix_web::{test, App};
 use serde_json::json;
-use uuid::Uuid;
 use judge::routes::submission::create_submission;
 use sqlx::PgPool;
 
