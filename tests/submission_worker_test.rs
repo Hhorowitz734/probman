@@ -9,7 +9,7 @@ use serde_json::json;
 use tokio::time::{sleep, Duration};
 
 // Import the worker function
-use judge::submission_queue::start_redis_worker;
+use judge::submission_queue::redis_worker::start_redis_worker;
 
 #[tokio::test]
 async fn test_submission_worker_processes_queue() {

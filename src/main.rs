@@ -33,7 +33,7 @@ async fn main() -> std::io::Result<()> {
 
     let pool_clone = pool.clone();
     tokio::spawn(async move {
-        submission_queue::start_redis_worker(redis_con, pool_clone).await;
+        crate::submission_queue::redis_worker::start_redis_worker(redis_con, pool_clone).await;
     });
 
     HttpServer::new(move || {
