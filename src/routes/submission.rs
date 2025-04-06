@@ -60,6 +60,7 @@ pub async fn create_submission(
     // Format payload for Redis
     let redis_payload = json!({
         "submission_id": submission_id.to_string(),
+        "problem_id": problem_id.to_string(),
         "code": code
     })
     .to_string();
