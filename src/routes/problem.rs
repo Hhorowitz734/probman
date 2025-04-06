@@ -1,10 +1,47 @@
 // src/routes/problem.rs
 
-use actix_web::{get, post, web, HttpResponse, Responder};
+use actix_web::{get, delete, post, web, HttpResponse, Responder};
 use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::models::problem::{Problem, NewProblem};
+
+#[delete("problem/{id}")]
+pub async fn delete_problem_by_id(
+    pool: web::Data<PgPool>,
+    id: web::Path<Uuid>,
+) -> impl Responder {
+    let id = id.into_inner();    
+    // Get problem
+    let problem = sqlx::query_as::<_, Problem>("SELECT * FROM problems WHERE id = $1")
+        .bind(id)
+        .fetch_optional(pool.get_ref())
+        .await;
+    
+    // Verify that problem exists
+    match problem {
+        Ok(Some(data)) => {
+                let result = sqlx::query!("DELETE FROM problems WHERE id = $1", id)
+                .execute(pool.get_ref())
+                .await;
+        
+        match result {
+                Ok(_) => HttpResponse::Ok().json(data), // Return deleted object
+                Err(e) => {
+                    eprintln!("Delete error: {:?}", e);
+                    HttpResponse::InternalServerError().body("Failed to delete problem")
+                }
+            }
+        }
+
+        Ok(None) => HttpResponse::NotFound().body("Problem not found"),
+        Err(e) => {
+            eprintln!("Fetch error: {:?}", e);
+            HttpResponse::InternalServerError().body("Failed to fetch problem")
+        }
+    }
+    
+}
 
 #[get("/problems")]
 pub async fn get_all_problems(pool: web::Data<PgPool>) -> impl Responder {
