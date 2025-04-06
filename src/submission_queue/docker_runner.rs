@@ -5,6 +5,9 @@ use uuid::Uuid;
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::PathBuf;
+use std::process::Stdio;
+use tokio::process::Command;
+
 
 pub async fn run_docker_submission(
     submission_id: Uuid,
@@ -27,7 +30,35 @@ pub async fn run_docker_submission(
         }
     }
 
-    // TODO: Add Docker logic here
+    // Run the code with docker
+    let output = Command::new("docker")
+        .arg("run")
+        .arg("--rm")
+        .arg("-v")
+        .arg(format!("{}:/sandbox", dir.display()))
+        .arg("python:3.10-slim")
+        .arg("python3")
+        .arg("/sandbox/run.py")
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .output()
+        .await;
+
+    match output {
+        Ok(result) => {
+            if result.status.success() { 
+                println!("Stdout: \n{}", String::from_utf8_lossy(&result.stdout));
+                return "Accepted".to_string();
+            } else {
+                println!("Stderr: \n{}", String::from_utf8_lossy(&result.stderr));
+                return "Runtime Error".to_string();
+            }
+        }
+        Err(e) => {
+            eprintln!("Docker run failed: {:?}", e);
+            return "Judge Error".to_string();
+        }
+    }
 
     "Accepted".to_string()
 }
