@@ -27,7 +27,7 @@ async fn test_create_submission() {
     )
     .await;
 
-    let problem_id = "a2ce5f3a-e00a-41fb-b00b-323e44910e33".to_string();
+    let problem_id = "646f8692-ea04-4a60-92b1-d4e0840eaf7f".to_string();
 
     let submission_payload = json!({
         "problem_id": problem_id,
