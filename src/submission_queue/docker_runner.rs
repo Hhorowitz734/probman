@@ -47,7 +47,6 @@ pub async fn run_docker_submission(
     for case in test_cases {
         let input = case.input;
         let expected_output = case.expected_output.trim();
-        println!("Reached this point in execution.");
         let mut cmd = Command::new("docker")
             .arg("run")
             .arg("--rm")
@@ -91,6 +90,11 @@ pub async fn run_docker_submission(
         }
 
         let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+
+        // Write stdout and stderr to log files
+        let _ = fs::write(dir.join("stdout.log"), &output.stdout);
+        let _ = fs::write(dir.join("stderr.log"), &output.stderr);
+
 
         if stdout != expected_output {
             return Ok("Wrong Answer".to_string());
