@@ -47,7 +47,7 @@ pub async fn run_docker_submission(
     for case in test_cases {
         let input = case.input;
         let expected_output = case.expected_output.trim();
-        println!("Reached this point in execution.")
+        println!("Reached this point in execution.");
         let mut cmd = Command::new("docker")
             .arg("run")
             .arg("--rm")
