@@ -1,5 +1,6 @@
 // src/submission_queue/redis_worker.rs
 
+
 use redis::aio::MultiplexedConnection;
 use redis::AsyncCommands;
 use sqlx::PgPool;
@@ -8,14 +9,12 @@ use serde_json::Value;
 use tokio::time::{sleep, Duration};
 use crate::submission_queue::docker_runner;
 
-
 pub async fn start_redis_worker(
     mut con: MultiplexedConnection,
-    pool: PgPool
+    pool: PgPool,
 ) {
     loop {
         // Block until a new submission is available
-
         match con.blpop::<_, Option<(String, String)>>("submission_queue", 0.0).await {
             Ok(Some((_, payload))) => {
                 // Parse the JSON payload from the queue
@@ -26,16 +25,23 @@ pub async fn start_redis_worker(
                     // If both fields are present and valid
                     if let (Some(id), Some(code)) = (maybe_id, maybe_code) {
                         if let Ok(submission_id) = Uuid::parse_str(id) {
-                            // Run the code submission (mocked for now)
-                            let verdict = docker_runner::run_docker_submission(
+                            // Run the code submission
+                            let verdict = match docker_runner::run_docker_submission(
                                 submission_id,
-                                code.to_string()
-                            ).await;
+                                code.to_string(),
+                                &pool,
+                            ).await {
+                                Ok(v) => v,
+                                Err(e) => {
+                                    eprintln!("Execution error: {:?}", e);
+                                    "Judge Error".to_string()
+                                }
+                            };
 
                             // Update the verdict in the database
                             let _ = sqlx::query!(
                                 "UPDATE submissions SET verdict = $1 WHERE id = $2",
-                                verdict,
+                                &verdict,
                                 submission_id
                             )
                             .execute(&pool)

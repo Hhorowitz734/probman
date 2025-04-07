@@ -7,17 +7,37 @@ use std::io::Write;
 use std::path::PathBuf;
 use std::process::Stdio;
 use tokio::process::Command;
-
+use sqlx::PgPool;
 
 pub async fn run_docker_submission(
     submission_id: Uuid,
-    code: String
-) -> String {
+    code: String,
+    pool: &PgPool
+) -> Result<String, sqlx::Error> {
+    
+    // Fetch test cases corresponding to problem
+    let row = sqlx::query!(
+        "SELECT problem_id FROM submissions WHERE id = $1",
+        submission_id
+    )
+    .fetch_one(pool)
+    .await?;
+    
+    let problem_id = row.problem_id; // got problem id
+
+    // Now, grab the test cases
+    let test_cases = sqlx::query!(
+        "SELECT input, expected_output FROM test_cases WHERE problem_id = $1",
+        problem_id
+    )
+    .fetch_all(pool)
+    .await?;
+
     // Create directory for this submission
     let dir = PathBuf::from(format!("/tmp/judge/{}", submission_id));
     if let Err(e) = fs::create_dir_all(&dir) {
         eprintln!("Failed to create submission dir: {:?}", e);
-        return "Judge Error".into();
+        return Ok("Judge Error".to_string())
     }
 
     // Write code to run.py
@@ -26,7 +46,7 @@ pub async fn run_docker_submission(
         Ok(_) => (),
         Err(e) => {
             eprintln!("Failed to write code: {:?}", e);
-            return "Judge Error".into();
+            return Ok("Judge Error".to_string())
         }
     }
 
@@ -48,17 +68,16 @@ pub async fn run_docker_submission(
         Ok(result) => {
             if result.status.success() { 
                 println!("Stdout: \n{}", String::from_utf8_lossy(&result.stdout));
-                return "Accepted".to_string();
+                Ok("Accepted".to_string()) 
             } else {
                 println!("Stderr: \n{}", String::from_utf8_lossy(&result.stderr));
-                return "Runtime Error".to_string();
+                return Ok("Runtime Error".to_string())
             }
         }
         Err(e) => {
             eprintln!("Docker run failed: {:?}", e);
-            return "Judge Error".to_string();
+            return Ok("Judge Error".to_string())
         }
     }
 
-    "Accepted".to_string()
 }
