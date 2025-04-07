@@ -96,14 +96,18 @@ pub async fn create_problem(
     let NewProblem {
         title,
         description,
-        difficulty
+        difficulty,
+        input_type,
+        output_type
     } = payload.into_inner();
 
     let result = sqlx::query!(
-        "INSERT INTO problems (title, description, difficulty) VALUES ($1, $2, $3)",
+        "INSERT INTO problems (title, description, difficulty, input_type, output_type) VALUES ($1, $2, $3, $4, $5)",
         title,
         description,
-        difficulty
+        difficulty,
+        input_type,
+        output_type
     )
     .execute(pool.get_ref())
     .await;

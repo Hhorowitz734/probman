@@ -16,19 +16,21 @@ pub async fn create_test_case(
         problem_id,
         input,
         expected_output,
-        visibility,
+        input_type,
+        output_type
     } = payload.into_inner();
 
     let test_case_id = Uuid::new_v4();
 
     let result = sqlx::query!(
-        "INSERT INTO test_cases (id, problem_id, input, expected_output, visibility)
-         VALUES ($1, $2, $3, $4, $5)",
+        "INSERT INTO test_cases (id, problem_id, input, expected_output, input_type, output_type)
+         VALUES ($1, $2, $3, $4, $5, $6)",
         test_case_id,
         problem_id,
         input,
         expected_output,
-        visibility
+        input_type,
+        output_type
     )
     .execute(pool.get_ref())
     .await;
@@ -50,7 +52,7 @@ pub async fn get_test_cases_for_problem(
 ) -> impl Responder {
 
     let result = sqlx::query_as::<_, TestCase>(
-        "SELECT id, problem_id, input, expected_output, visibility FROM test_cases WHERE problem_id = $1"
+        "SELECT id, problem_id, input, expected_output, input_type, output_type FROM test_cases WHERE problem_id = $1"
     )
     .bind(id.into_inner())
     .fetch_all(pool.get_ref())

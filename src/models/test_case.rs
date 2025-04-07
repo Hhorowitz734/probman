@@ -9,7 +9,8 @@ pub struct NewTestCase {
     pub problem_id: Uuid,
     pub input: String,
     pub expected_output: String,
-    pub visibility: Option<String>,
+    pub input_type: String,
+    pub output_type: String
 }
 
 
@@ -20,5 +21,6 @@ pub struct TestCase {
     pub problem_id: Uuid,
     pub input: String,
     pub expected_output: String,
-    pub visibility: Option<String>,
+    pub input_type: String,
+    pub output_type: String
 }
