@@ -1,7 +1,6 @@
 // test/test_case_routes.rs
 
-
-use actix_web::{test, web, App};
+use actix_web::{App, test, web};
 use dotenvy::dotenv;
 use judge::routes::test_case::{create_test_case, get_test_cases_for_problem};
 use serde_json::json;
@@ -145,4 +144,3 @@ async fn test_get_test_cases_for_problem() {
     let body: serde_json::Value = test::read_body_json(resp).await;
     assert!(body.is_array());
 }
-

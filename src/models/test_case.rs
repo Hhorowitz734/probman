@@ -1,6 +1,6 @@
 // src/models/test_case.rs
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use uuid::Uuid;
 
@@ -11,10 +11,8 @@ pub struct NewTestCase {
     pub input: String,
     pub expected_output: String,
     pub input_type: String,
-    pub output_type: String
+    pub output_type: String,
 }
-
-
 
 #[derive(Debug, FromRow, Serialize)]
 pub struct TestCase {
@@ -24,5 +22,5 @@ pub struct TestCase {
     pub input: String,
     pub expected_output: String,
     pub input_type: String,
-    pub output_type: String
+    pub output_type: String,
 }

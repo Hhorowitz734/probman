@@ -1,10 +1,10 @@
 // tests/problem_routes.rs
 
-use actix_web::{test, App};
-use judge::routes::problem::{get_problem_by_id, get_all_problems, create_problem};
-use sqlx::PgPool;
+use actix_web::{App, test};
 use dotenvy::dotenv;
+use judge::routes::problem::{create_problem, get_all_problems, get_problem_by_id};
 use serde_json::json;
+use sqlx::PgPool;
 
 #[actix_rt::test]
 async fn test_create_and_delete_problem() {
@@ -20,7 +20,8 @@ async fn test_create_and_delete_problem() {
             .service(create_problem)
             .service(judge::routes::problem::delete_problem_by_id)
             .service(get_problem_by_id),
-    ).await;
+    )
+    .await;
 
     // Step 1: Create a new problem
     let test_problem = json!({
@@ -37,7 +38,8 @@ async fn test_create_and_delete_problem() {
             .uri("/problems")
             .set_json(&test_problem)
             .to_request(),
-    ).await;
+    )
+    .await;
 
     assert_eq!(
         create_resp.status(),
@@ -47,18 +49,19 @@ async fn test_create_and_delete_problem() {
     );
 
     // Step 2: Get ID of the problem we just inserted
-    let row = sqlx::query!("SELECT id FROM problems WHERE title = $1", "Temporary Problem")
-        .fetch_one(&pool)
-        .await
-        .expect("Failed to retrieve created problem");
+    let row = sqlx::query!(
+        "SELECT id FROM problems WHERE title = $1",
+        "Temporary Problem"
+    )
+    .fetch_one(&pool)
+    .await
+    .expect("Failed to retrieve created problem");
 
     let problem_id = row.id;
 
     // Step 3: Delete the problem
     let delete_uri = format!("/problem/{}", problem_id);
-    let delete_req = test::TestRequest::delete()
-        .uri(&delete_uri)
-        .to_request();
+    let delete_req = test::TestRequest::delete().uri(&delete_uri).to_request();
 
     let delete_resp = test::call_service(&app, delete_req).await;
 
@@ -81,4 +84,3 @@ async fn test_create_and_delete_problem() {
         get_resp.status()
     );
 }
-

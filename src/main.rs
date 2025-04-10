@@ -1,14 +1,13 @@
 // src/main.rs
 
-
 use actix_web::{App, HttpServer, web};
-use sqlx::postgres::PgPoolOptions;
 use dotenvy::dotenv;
-use std::env;
 use redis::Client as RedisClient;
+use sqlx::postgres::PgPoolOptions;
+use std::env;
 
-mod routes;
 mod models;
+mod routes;
 mod submission_queue;
 
 #[actix_web::main]
@@ -46,4 +45,3 @@ async fn main() -> std::io::Result<()> {
     .run()
     .await
 }
-

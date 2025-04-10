@@ -1,10 +1,10 @@
 // src/routes/test_case.rs
 
-use actix_web::{get, post, web, HttpResponse, Responder};
+use actix_web::{HttpResponse, Responder, get, post, web};
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::models::test_case::{TestCase, NewTestCase};
+use crate::models::test_case::{NewTestCase, TestCase};
 
 #[post("/test-cases")]
 pub async fn create_test_case(
@@ -37,7 +37,8 @@ pub async fn create_test_case(
     };
 
     if problem.input_type != input_type || problem.output_type != output_type {
-        return HttpResponse::BadRequest().body("Input/output type does not match problem definition");
+        return HttpResponse::BadRequest()
+            .body("Input/output type does not match problem definition");
     }
 
     let test_case_id = Uuid::new_v4();
@@ -72,7 +73,7 @@ pub async fn get_test_cases_for_problem(
 ) -> impl Responder {
     let result = sqlx::query_as::<_, TestCase>(
         "SELECT id, name, problem_id, input, expected_output, input_type, output_type
-         FROM test_cases WHERE problem_id = $1"
+         FROM test_cases WHERE problem_id = $1",
     )
     .bind(id.into_inner())
     .fetch_all(pool.get_ref())
@@ -86,4 +87,3 @@ pub async fn get_test_cases_for_problem(
         }
     }
 }
-

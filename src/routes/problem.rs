@@ -1,31 +1,28 @@
 // src/routes/problem.rs
 
-use actix_web::{get, delete, post, web, HttpResponse, Responder};
+use actix_web::{HttpResponse, Responder, delete, get, post, web};
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::models::problem::{Problem, NewProblem};
+use crate::models::problem::{NewProblem, Problem};
 
 #[delete("problem/{id}")]
-pub async fn delete_problem_by_id(
-    pool: web::Data<PgPool>,
-    id: web::Path<Uuid>,
-) -> impl Responder {
-    let id = id.into_inner();    
+pub async fn delete_problem_by_id(pool: web::Data<PgPool>, id: web::Path<Uuid>) -> impl Responder {
+    let id = id.into_inner();
     // Get problem
     let problem = sqlx::query_as::<_, Problem>("SELECT * FROM problems WHERE id = $1")
         .bind(id)
         .fetch_optional(pool.get_ref())
         .await;
-    
+
     // Verify that problem exists
     match problem {
         Ok(Some(data)) => {
-                let result = sqlx::query!("DELETE FROM problems WHERE id = $1", id)
+            let result = sqlx::query!("DELETE FROM problems WHERE id = $1", id)
                 .execute(pool.get_ref())
                 .await;
-        
-        match result {
+
+            match result {
                 Ok(_) => HttpResponse::Ok().json(data), // Return deleted object
                 Err(e) => {
                     eprintln!("Delete error: {:?}", e);
@@ -40,12 +37,10 @@ pub async fn delete_problem_by_id(
             HttpResponse::InternalServerError().body("Failed to fetch problem")
         }
     }
-    
 }
 
 #[get("/problems")]
 pub async fn get_all_problems(pool: web::Data<PgPool>) -> impl Responder {
-
     let problems = sqlx::query_as::<_, Problem>("SELECT * FROM problems")
         .fetch_all(pool.get_ref())
         .await;
@@ -53,25 +48,19 @@ pub async fn get_all_problems(pool: web::Data<PgPool>) -> impl Responder {
     match problems {
         Ok(data) => HttpResponse::Ok().json(data),
         Err(e) => {
-            eprintln!("Error querying problems: {:?}", e); 
+            eprintln!("Error querying problems: {:?}", e);
             HttpResponse::InternalServerError().body("Database query failed")
         }
     }
 }
 
-
-
 #[get("/problem/{id}")]
-pub async fn get_problem_by_id(
-    pool: web::Data<PgPool>,
-    id: web::Path<Uuid>,
-) -> impl Responder {
-    
+pub async fn get_problem_by_id(pool: web::Data<PgPool>, id: web::Path<Uuid>) -> impl Responder {
     let result = sqlx::query_as::<_, Problem>("SELECT * FROM problems WHERE id = $1")
         .bind(id.into_inner())
         .fetch_optional(pool.get_ref())
         .await;
-    
+
     /*
     3 cases need to be handled here
     ------
@@ -82,23 +71,21 @@ pub async fn get_problem_by_id(
     match result {
         Ok(Some(problem)) => HttpResponse::Ok().json(problem),
         Ok(None) => HttpResponse::NotFound().body("Problem not found"),
-        Err(_) => HttpResponse::InternalServerError().body("Database query failed")
+        Err(_) => HttpResponse::InternalServerError().body("Database query failed"),
     }
 }
-
 
 #[post("/problems")]
 pub async fn create_problem(
     pool: web::Data<PgPool>,
     payload: web::Json<NewProblem>,
 ) -> impl Responder {
-
     let NewProblem {
         title,
         description,
         difficulty,
         input_type,
-        output_type
+        output_type,
     } = payload.into_inner();
 
     let result = sqlx::query!(
@@ -114,6 +101,6 @@ pub async fn create_problem(
 
     match result {
         Ok(_) => HttpResponse::Created().finish(),
-        Err(_) => HttpResponse::InternalServerError().body("Failed to insert problem")
+        Err(_) => HttpResponse::InternalServerError().body("Failed to insert problem"),
     }
 }

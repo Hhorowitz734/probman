@@ -11,7 +11,7 @@ pub struct Problem {
     pub description: String,
     pub difficulty: Option<String>,
     pub input_type: String,
-    pub output_type: String
+    pub output_type: String,
 }
 
 #[derive(Debug, FromRow, Serialize, Deserialize)]
@@ -20,5 +20,5 @@ pub struct NewProblem {
     pub description: String,
     pub difficulty: String,
     pub input_type: String,
-    pub output_type: String
+    pub output_type: String,
 }

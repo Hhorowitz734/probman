@@ -1,15 +1,13 @@
 // src/submission_queue/docker_runner.rs
 
-
-use uuid::Uuid;
+use sqlx::PgPool;
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::PathBuf;
 use std::process::Stdio;
-use tokio::process::Command;
-use sqlx::PgPool;
 use tokio::io::AsyncWriteExt;
-
+use tokio::process::Command;
+use uuid::Uuid;
 
 pub async fn run_docker_submission(
     submission_id: Uuid,
@@ -47,7 +45,7 @@ pub async fn run_docker_submission(
     for case in test_cases {
         let input = case.input;
         let expected_output = case.expected_output.trim();
-        let mut cmd = Command::new("docker")
+        let cmd = Command::new("docker")
             .arg("run")
             .arg("--rm")
             .arg("-i") // Pass input via stdin
@@ -95,7 +93,6 @@ pub async fn run_docker_submission(
         let _ = fs::write(dir.join("stdout.log"), &output.stdout);
         let _ = fs::write(dir.join("stderr.log"), &output.stderr);
 
-
         if stdout != expected_output {
             return Ok("Wrong Answer".to_string());
         }
@@ -103,4 +100,3 @@ pub async fn run_docker_submission(
 
     Ok("Accepted".to_string())
 }
-

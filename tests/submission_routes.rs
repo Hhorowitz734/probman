@@ -1,12 +1,9 @@
 // tests/submission_routes.rs
 
-use actix_web::{test, App};
-use serde_json::json;
+use actix_web::{App, test};
 use judge::routes::submission::create_submission;
+use serde_json::json;
 use sqlx::PgPool;
-
-
-
 
 #[actix_rt::test]
 async fn test_create_submission() {
@@ -47,4 +44,3 @@ async fn test_create_submission() {
     assert!(response_body.is_object());
     assert!(response_body["id"].is_string());
 }
-

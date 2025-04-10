@@ -14,6 +14,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .service(problem::get_all_problems)
             .service(submission::create_submission)
             .service(test_case::create_test_case)
-            .service(test_case::get_test_cases_for_problem)
-            );
+            .service(test_case::get_test_cases_for_problem),
+    );
 }

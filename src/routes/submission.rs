@@ -1,10 +1,40 @@
 // src/routes/submission.rs
 
-use actix_web::{post, web, HttpResponse, Responder};
-use sqlx::PgPool;
-use redis::{Client as RedisClient, aio::MultiplexedConnection, AsyncCommands};
-use serde_json::json;
 use crate::models::submission::NewSubmissionRequest;
+use actix_web::{HttpResponse, Responder, get, post, web};
+use redis::{AsyncCommands, Client as RedisClient, aio::MultiplexedConnection};
+use serde_json::json;
+use sqlx::PgPool;
+use uuid::Uuid;
+
+#[get("/submissions/{id}")]
+pub async fn get_submission_result(pool: web::Data<PgPool>, id: web::Path<Uuid>) -> impl Responder {
+    let submission_id = id.into_inner();
+
+    let result = sqlx::query!(
+        "SELECT id, problem_id, code, verdict FROM submissions WHERE id = $1",
+        submission_id
+    )
+    .fetch_optional(pool.get_ref())
+    .await;
+
+    match result {
+        Ok(Some(row)) => {
+            let json = serde_json::json!({
+                "id": row.id,
+                "problem_id": row.problem_id,
+                "code": row.code,
+                "verdict": row.verdict
+            });
+            HttpResponse::Ok().json(json)
+        }
+        Ok(None) => HttpResponse::NotFound().body("Submission not found"),
+        Err(e) => {
+            eprintln!("Database error: {:?}", e);
+            HttpResponse::InternalServerError().body("Failed to fetch submission")
+        }
+    }
+}
 
 #[post("/submissions")]
 pub async fn create_submission(
@@ -12,26 +42,21 @@ pub async fn create_submission(
     redis: web::Data<RedisClient>,
     payload: web::Json<NewSubmissionRequest>,
 ) -> impl Responder {
-    let NewSubmissionRequest {
-        problem_id,
-        code,
-    } = payload.into_inner();
+    let NewSubmissionRequest { problem_id, code } = payload.into_inner();
 
     // Verify that the problem exists
-    let problem_exists = match sqlx::query_scalar!(
-        "SELECT 1 FROM problems WHERE id = $1",
-        problem_id
-    )
-    .fetch_optional(pool.get_ref())
-    .await
-    {
-        Ok(Some(_)) => true,
-        Ok(None) => false,
-        Err(e) => {
-            eprintln!("DB error while checking problem: {:?}", e);
-            return HttpResponse::InternalServerError().body("Database error");
-        }
-    };
+    let problem_exists =
+        match sqlx::query_scalar!("SELECT 1 FROM problems WHERE id = $1", problem_id)
+            .fetch_optional(pool.get_ref())
+            .await
+        {
+            Ok(Some(_)) => true,
+            Ok(None) => false,
+            Err(e) => {
+                eprintln!("DB error while checking problem: {:?}", e);
+                return HttpResponse::InternalServerError().body("Database error");
+            }
+        };
 
     if !problem_exists {
         return HttpResponse::NotFound().body("Problem not found");
@@ -75,11 +100,13 @@ pub async fn create_submission(
     };
 
     // Push to Redis queue
-    if let Err(e) = conn.rpush::<_, _, ()>("submission_queue", redis_payload).await {
+    if let Err(e) = conn
+        .rpush::<_, _, ()>("submission_queue", redis_payload)
+        .await
+    {
         eprintln!("Redis push error: {:?}", e);
         return HttpResponse::InternalServerError().body("Failed to enqueue submission");
     }
 
     HttpResponse::Created().json(json!({ "id": submission_id }))
 }
-
