@@ -89,7 +89,7 @@ pub async fn run_docker_submission(
             return Ok(format!(
                 "Runtime Error on test case: \"{}\"\nInput: {}\nError: {}",
                 name, input, stderr
-            ));        
+            ));
         }
 
         let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
@@ -99,7 +99,10 @@ pub async fn run_docker_submission(
         let _ = fs::write(dir.join("stderr.log"), &output.stderr);
 
         if stdout != expected_output {
-            return Ok("Wrong Answer".to_string());
+            return Ok(format!(
+                "Wrong Answer on test case: \"{}\"\nInput: {}\nExpected: {}\nGot: {}",
+                name, input, expected_output, stdout
+            ));
         }
     }
 

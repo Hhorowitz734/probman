@@ -54,15 +54,32 @@ pub async fn start_redis_worker(mut con: MultiplexedConnection, pool: PgPool) {
                                     }
                                 };
 
-                                let _ = sqlx::query!(
-                                    "UPDATE submissions SET verdict = $1 WHERE id = $2",
-                                    &verdict,
+                                
+                                let (short_verdict, detail) = if verdict.starts_with("Wrong Answer") {
+                                    ("Wrong Answer", Some(verdict))
+                                } else if verdict.starts_with("Runtime Error") {
+                                    ("Runtime Error", Some(verdict))
+                                } else if verdict.starts_with("Time Limit Exceeded") {
+                                    ("Time Limit Exceeded", Some(verdict))
+                                } else if verdict.starts_with("Compile Error") {
+                                    ("Compile Error", Some(verdict))
+                                } else if verdict == "Accepted" {
+                                    ("Accepted", None)
+                                } else {
+                                    ("Judge Error", Some(verdict))
+                                };
+
+                                match sqlx::query!(
+                                    "UPDATE submissions SET verdict = $1, verdict_detail = $2 WHERE id = $3",
+                                    short_verdict,
+                                    detail,
                                     submission_id
                                 )
                                 .execute(&pool)
-                                .await;
-
-                                println!("Processed submission: {}", submission_id);
+                                .await {
+                                    Ok(_) => println!("Processed submission: {}", submission_id),
+                                    Err(e) => eprintln!("Failed to update verdict: {:?}", e),
+                                }
                             }
                         }
                     }
