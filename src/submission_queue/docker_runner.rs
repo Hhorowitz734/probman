@@ -24,7 +24,7 @@ pub async fn run_docker_submission(
     let problem_id = row.problem_id;
 
     let test_cases = sqlx::query!(
-        "SELECT input, expected_output FROM test_cases WHERE problem_id = $1",
+        "SELECT name, input, expected_output FROM test_cases WHERE problem_id = $1",
         problem_id
     )
     .fetch_all(pool)
@@ -43,6 +43,7 @@ pub async fn run_docker_submission(
     }
 
     for case in test_cases {
+        let name = case.name;
         let input = case.input;
         let expected_output = case.expected_output.trim();
         let cmd = Command::new("docker")
@@ -83,8 +84,12 @@ pub async fn run_docker_submission(
         };
 
         if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
             println!("Stderr: \n{}", String::from_utf8_lossy(&output.stderr));
-            return Ok("Runtime Error".to_string());
+            return Ok(format!(
+                "Runtime Error on test case: \"{}\"\nInput: {}\nError: {}",
+                name, input, stderr
+            ));        
         }
 
         let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
