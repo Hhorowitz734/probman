@@ -101,8 +101,8 @@ pub async fn run_docker_submission(
         
         if stdout != expected_output {
             return Ok(format!(
-                "Wrong Answer on test case: \"{}\"\nInput: {}\nExpected: {}\nGot: {}",
-                name, input, expected_output, stdout
+                "Wrong Answer on test case: {}",
+                name
             ));
         }
 
