@@ -12,7 +12,7 @@ pub async fn get_submission_result(pool: web::Data<PgPool>, id: web::Path<Uuid>)
     let submission_id = id.into_inner();
 
     let result = sqlx::query!(
-        "SELECT id, problem_id, code, verdict FROM submissions WHERE id = $1",
+        "SELECT id, problem_id, code, verdict, verdict_detail FROM submissions WHERE id = $1",
         submission_id
     )
     .fetch_optional(pool.get_ref())
@@ -24,7 +24,8 @@ pub async fn get_submission_result(pool: web::Data<PgPool>, id: web::Path<Uuid>)
                 "id": row.id,
                 "problem_id": row.problem_id,
                 "code": row.code,
-                "verdict": row.verdict
+                "verdict": row.verdict,
+                "verdict_detail": row.verdict_detail
             });
             HttpResponse::Ok().json(json)
         }
