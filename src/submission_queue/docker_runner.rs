@@ -99,14 +99,7 @@ pub async fn run_docker_submission(
         let _ = fs::write(dir.join("stderr.log"), &output.stderr);
 
         if stdout != expected_output {
-            let msg = format!(
-                "Wrong Answer on test case: \"{}\"\nInput: {}\nExpected: {}\nGot: {}",
-                name, input, expected_output, stdout
-            );
-
-            println!("[judge] Verdict computed:\n{}", msg); // log to debug
-
-            return Ok(msg);
+            return Ok("Wrong Answer".to_string());
         }
     }
 
